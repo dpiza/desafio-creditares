@@ -12,8 +12,8 @@ class CepService
 {
   public function validateCep($cep)
   {
-    $validator = Validator::make((array)$cep, [
-      'cep' => 'required|unique:ceps|max:8',
+    $validator = Validator::make($cep, [
+      'cep' => 'required|max:8',
       'logradouro' => 'required',
       'bairro' => 'required',
       'cidade' => 'required',
@@ -29,12 +29,18 @@ class CepService
     $this->validateCep($cepObject);
 
     return Cep::create([
-      'cep'        => $cepObject->cep,
-      'logradouro' => $cepObject->logradouro,
-      'bairro'     => $cepObject->bairro,
-      'cidade'     => $cepObject->cidade,
-      'uf'         => $cepObject->uf,
+      'cep'        => $cepObject['cep'],
+      'logradouro' => $cepObject['logradouro'],
+      'bairro'     => $cepObject['bairro'],
+      'cidade'     => $cepObject['cidade'],
+      'uf'         => $cepObject['uf'],
     ]);
+  }
+
+  public function updateCepDb($cepObject, $id)
+  {
+    $this->validateCep($cepObject);
+    return Cep::whereId($id)->update($cepObject);
   }
 
   public function findByCep($cep)
@@ -69,8 +75,8 @@ class CepService
 
   public function addCep($request, $cep)
   {
-    $cepObject = json_decode($request->getContent(), false);
-    if ($cepObject->cep != $cep) {
+    $cepObject = json_decode($request->getContent(), true);
+    if ($cepObject['cep'] != $cep) {
       throw new Exception('Subject cep differs from object cep');
     }
 
@@ -82,6 +88,23 @@ class CepService
     $newCep = $this->addNewCep($cepObject);
 
     return $newCep;
+  }
+
+  public function updateCep($request, $cep)
+  {
+    $cepObject = json_decode($request->getContent(), true);
+    if ($cepObject['cep'] != $cep) {
+      throw new Exception('Subject cep differs from object cep');
+    }
+
+    $dbCep = DB::table('ceps')->where('cep', $cep)->first();
+    if (is_null($dbCep)) {
+      throw new Exception('Cep unknown in database');
+    }
+
+    $updatedCep = $this->updateCepDb($cepObject, $dbCep->id);
+
+    return $updatedCep;
   }
 
   public function fetchCep($query)

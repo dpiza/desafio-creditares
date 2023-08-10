@@ -6,6 +6,7 @@ use Exception;
 use App\Models\Cep;
 use App\Services\CepService;
 use App\Http\Requests\PostStoreRequest;
+use App\Http\Requests\PutUpdateRequest;
 use Illuminate\Http\JsonResponse;
 
 class CepController extends Controller
@@ -64,7 +65,7 @@ class CepController extends Controller
   public function store(PostStoreRequest $request, $cep, CepService $cepService)
   {
     try {
-      $dbCep = $cepService->addCep($request, $cep);
+      $cepService->addCep($request, $cep);
     } catch (Exception $e) {
       if (
         $e->getMessage() == "Cep already in database" ||
@@ -83,7 +84,29 @@ class CepController extends Controller
 
     return response()->json([
       'message' => 'Succeed',
-      'data' => $dbCep,
+      'data' => [],
+    ], JsonResponse::HTTP_CREATED);
+  }
+
+  public function update(PutUpdateRequest $request, $cep, CepService $cepService)
+  {
+    try {
+      $cepService->updateCep($request, $cep);
+    } catch (Exception $e) {
+      if ($e->getMessage() == "Subject cep differs from object cep") {
+        $responseStatus = JsonResponse::HTTP_BAD_REQUEST;
+      } else {
+        $responseStatus = JsonResponse::HTTP_INTERNAL_SERVER_ERROR;
+      }
+      return response()->json([
+        'message' => $e->getMessage(),
+        'data' => [],
+      ], $responseStatus);
+    }
+
+    return response()->json([
+      'message' => 'Succeed',
+      'data' => [],
     ], JsonResponse::HTTP_OK);
   }
 }

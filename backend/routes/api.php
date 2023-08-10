@@ -27,8 +27,8 @@ Route::group(['prefix' => 'cep'], function () {
   Route::get('/search/{streetName}', [CepController::class, 'findByStreetName']);
   Route::post('/{cep}', [CepController::class, 'store'])
     ->where('cep', '[0-9]{8}');
-  // Route::put('/{cep}', [CepController::class, 'update'])
-  //   ->where('cep', '[0-9]{8}');
+  Route::put('/{cep}', [CepController::class, 'update'])
+    ->where('cep', '[0-9]{8}');
   // Route::delete('/{cep}', [CepController::class, 'destroy'])
   //   ->where('cep', '[0-9]{8}');
 });
