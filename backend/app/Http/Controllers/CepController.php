@@ -93,7 +93,7 @@ class CepController extends Controller
     try {
       $cepService->updateCep($request, $cep);
     } catch (Exception $e) {
-      if ($e->getMessage() == "Subject cep differs from object cep") {
+      if ($e->getMessage() == "Cep unknown in database") {
         $responseStatus = JsonResponse::HTTP_BAD_REQUEST;
       } else {
         $responseStatus = JsonResponse::HTTP_INTERNAL_SERVER_ERROR;
@@ -115,7 +115,7 @@ class CepController extends Controller
     try {
       $cepService->deleteCep($cep);
     } catch (Exception $e) {
-      if ($e->getMessage() == "Subject cep differs from object cep") {
+      if ($e->getMessage() == "Cep unknown in database") {
         $responseStatus = JsonResponse::HTTP_BAD_REQUEST;
       } else {
         $responseStatus = JsonResponse::HTTP_INTERNAL_SERVER_ERROR;
