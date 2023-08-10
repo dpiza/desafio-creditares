@@ -109,4 +109,26 @@ class CepController extends Controller
       'data' => [],
     ], JsonResponse::HTTP_OK);
   }
+
+  public function destroy($cep, CepService $cepService)
+  {
+    try {
+      $cepService->deleteCep($cep);
+    } catch (Exception $e) {
+      if ($e->getMessage() == "Subject cep differs from object cep") {
+        $responseStatus = JsonResponse::HTTP_BAD_REQUEST;
+      } else {
+        $responseStatus = JsonResponse::HTTP_INTERNAL_SERVER_ERROR;
+      }
+      return response()->json([
+        'message' => $e->getMessage(),
+        'data' => [],
+      ], $responseStatus);
+    }
+
+    return response()->json([
+      'message' => 'Succeed',
+      'data' => [],
+    ], JsonResponse::HTTP_OK);
+  }
 }

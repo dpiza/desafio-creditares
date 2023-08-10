@@ -114,4 +114,16 @@ class CepService
 
     return $cepObject;
   }
+
+  public function deleteCep($cep)
+  {
+    $dbCep = DB::table('ceps')->where('cep', $cep)->first();
+    if (is_null($dbCep)) {
+      throw new Exception('Cep unknown in database');
+    }
+
+    $deleted = Cep::whereId($dbCep->id)->delete();
+
+    return $deleted;
+  }
 }

@@ -29,6 +29,6 @@ Route::group(['prefix' => 'cep'], function () {
     ->where('cep', '[0-9]{8}');
   Route::put('/{cep}', [CepController::class, 'update'])
     ->where('cep', '[0-9]{8}');
-  // Route::delete('/{cep}', [CepController::class, 'destroy'])
-  //   ->where('cep', '[0-9]{8}');
+  Route::delete('/{cep}', [CepController::class, 'destroy'])
+    ->where('cep', '[0-9]{8}');
 });
