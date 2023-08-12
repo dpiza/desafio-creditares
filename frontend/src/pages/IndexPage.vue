@@ -2,21 +2,21 @@
   <q-page>
     <div class="main-page">
       <div class="container row">
-        <div v-for="i in 12"
+        <div v-for="i in data"
         class="q-pa-sm col-xs-12 col-sm-12 col-md-3 col-lg-3 q-col-gutter-sm" :key="i">
           <address-card-component
-          :cep="cep"
-          :logradouro="logradouro"
-          :bairro="bairro"
-          :cidade="cidade"
-          :uf="uf"
+          :cep="i['cep']"
+          :logradouro="i['logradouro']"
+          :bairro="i['bairro']"
+          :cidade="i['cidade']"
+          :uf="i['uf']"
           class="cursor-pointer"
           @click="prompt_edit = true,
-            edit_cep = cep,
-            edit_logradouro = logradouro,
-            edit_bairro = bairro,
-            edit_cidade = cidade,
-            edit_uf = uf"/>
+            edit_cep = i['cep'],
+            edit_logradouro = i['logradouro'],
+            edit_bairro = i['bairro'],
+            edit_cidade = i['cidade'],
+            edit_uf = i['uf']"/>
         </div>
       </div>
     </div>
@@ -84,12 +84,15 @@
 import AddressCardComponent from 'components/AddressCardComponent.vue';
 import { useQuasar } from 'quasar';
 import { defineComponent, ref } from 'vue';
+import { api } from 'boot/axios';
 
 export default defineComponent({
   name: 'IndexPage',
   components: { AddressCardComponent },
   setup () {
     const $q = useQuasar();
+
+    const data = ref([]);
 
     const cep = "18010-040";
     const logradouro = "Rua Doutor Ubaldino do Amaral";
@@ -106,7 +109,15 @@ export default defineComponent({
     const edit_bairro = ref('');
     const edit_cidade = ref('');
     const edit_uf = ref('');
+
+    (async () => {
+      const res = await api.get("/cep/");
+      data.value = res.data.data;
+    })()
+
+
     return {
+      data,
       cep,
       logradouro,
       bairro,
@@ -166,6 +177,7 @@ export default defineComponent({
 }
 
 .container {
+  min-width: 1100px;
   max-width: 1140px;
   padding: 16px 16px;
 }
@@ -173,6 +185,7 @@ export default defineComponent({
 body {
   &.screen--xs, &.screen--sm {
     .container {
+        min-width: 100%;
         max-width: 100%;
         padding: 0;
     }
