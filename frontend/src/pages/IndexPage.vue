@@ -84,7 +84,7 @@
 import AddressCardComponent from 'components/AddressCardComponent.vue';
 import { useQuasar } from 'quasar';
 import { defineComponent, ref } from 'vue';
-import { api } from 'boot/axios';
+import { useCepStore } from 'stores/CepStore';
 
 export default defineComponent({
   name: 'IndexPage',
@@ -94,35 +94,28 @@ export default defineComponent({
 
     const data = ref([]);
 
-    const cep = "18010-040";
-    const logradouro = "Rua Doutor Ubaldino do Amaral";
-    const bairro = "Centro";
-    const cidade = "Sorocaba";
-    const uf= "SP";
     const add_cep = ref('');
     const add_logradouro = ref('');
     const add_bairro = ref('');
     const add_cidade = ref('');
     const add_uf = ref('');
+
     const edit_cep = ref('');
     const edit_logradouro = ref('');
     const edit_bairro = ref('');
     const edit_cidade = ref('');
     const edit_uf = ref('');
 
+    const cepStore = useCepStore(); 
+
     (async () => {
-      const res = await api.get("/cep/");
-      data.value = res.data.data;
+      await cepStore.getAll();
+      data.value = cepStore.getResults;
     })()
 
 
     return {
       data,
-      cep,
-      logradouro,
-      bairro,
-      cidade,
-      uf,
       onClickEvent: Event,
       add_cep,
       add_logradouro,
