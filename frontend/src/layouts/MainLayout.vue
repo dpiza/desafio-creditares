@@ -2,19 +2,24 @@
   <q-layout view="hHh Lpr fFf">
     <q-header>
       <q-toolbar class="bg-white">
-        <q-img width="101px" src="/icons/icon_cep.png"/>
+        <q-img width="110px" src="/icons/icon_cepdb.png"/>
       </q-toolbar>
-      <img src="/london-1920-300.png" class="header-image"/>
+      <img
+        class="header-image"  
+        src="/london-1920-300.png"
+        />
       <q-bar dark>
         <div class="search-bar row no-wrap justify-center">
           <div class="input">
             <q-input
+              clearable
               rounded
-              hide-bottom-space
               dense
               outlined
               bg-color="secondary"
               label="Buscar endereço"
+              v-model="search"
+              @keydown.enter="submitSearch"
             />
           </div>
           <div>
@@ -25,6 +30,7 @@
             color="secondary"
             text-color="primary"
             icon-right="search"
+            @click="submitSearch"
             />
           </div>
         </div>
@@ -40,15 +46,6 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
 
-const linksList = [
-  {
-    title: 'Docs',
-    caption: 'quasar.dev',
-    icon: 'school',
-    link: 'https://quasar.dev'
-  }
-];
-
 export default defineComponent({
   name: 'MainLayout',
 
@@ -56,13 +53,11 @@ export default defineComponent({
   },
 
   setup () {
-    const leftDrawerOpen = ref(false)
-
+    const search = ref('')
     return {
-      essentialLinks: linksList,
-      leftDrawerOpen,
-      toggleLeftDrawer () {
-        leftDrawerOpen.value = !leftDrawerOpen.value
+      search,
+      submitSearch(){
+        search.value && console.log(search.value);
       }
     }
   }
@@ -80,6 +75,10 @@ export default defineComponent({
 
   .input {
     width: 350px;
+      border-color: $primary;
+    .q-field--outlined:hover .q-field__control:before {
+      border-color: $accent;
+    }
   }
 
   .search-bar {
