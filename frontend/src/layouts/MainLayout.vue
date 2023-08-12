@@ -2,7 +2,9 @@
   <q-layout view="hHh Lpr fFf">
     <q-header>
       <q-toolbar class="bg-white">
-        <q-img width="110px" src="/icons/icon_cepdb.png"/>
+        <q-item clickable tag="home" href="#">
+          <q-img width="110px" src="/icons/icon_cepdb.png" href="#"/>
+        </q-item>
       </q-toolbar>
       <img
         class="header-image"  
@@ -65,37 +67,42 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-  .header-image {
-    width: 100%;
-    min-width: 600px;
-    max-height: 300px;
-    align-self:auto;
-    display: block;
-  }
 
-  .input {
-    width: 350px;
-      border-color: $primary;
-    .q-field--outlined:hover .q-field__control:before {
-      border-color: $accent;
-    }
-  }
+.q-item {
+  padding-left: 0;
+}
 
-  .search-bar {
-    width: 100%;
-  }
+.header-image {
+  width: 100%;
+  min-width: 600px;
+  max-height: 300px;
+  align-self:auto;
+  display: block;
+}
 
-  .q-btn {
-    height: 39px;
-    margin-left: 2px;
+.input {
+  width: 350px;
+    border-color: $primary;
+  .q-field--outlined:hover .q-field__control:before {
+    border-color: $accent;
   }
+}
 
-  .q-toolbar {
-    max-width: 1140;
-    height: 50px;
-  }
-  
-  .q-bar {
-    height:45px;
-  }
+.search-bar {
+  width: 100%;
+}
+
+.q-btn {
+  height: 39px;
+  margin-left: 2px;
+}
+
+.q-toolbar {
+  max-width: 1140;
+  height: 50px;
+}
+
+.q-bar {
+  height:45px;
+}
 </style>
