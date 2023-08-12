@@ -110,7 +110,7 @@ class CepService
   public function fetchCep($query)
   {
     $fetchCep = Http::acceptJson()->get("http://cep.la/{$query}");
-    $cepObject = json_decode($fetchCep, false);
+    $cepObject = json_decode($fetchCep, true);
 
     return $cepObject;
   }
