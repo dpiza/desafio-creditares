@@ -46,7 +46,8 @@
           </q-card-section>
           
           <q-card-actions align="right" class="text-primary">
-            <q-btn flat label="Apagar" v-show="prompt_edit" v-close-popup @click="removeAddress(),resetModal()"/>
+            <q-btn flat label="Apagar" color="red" v-show="prompt_edit" @click="confirm"/>
+            <q-space />
             <q-btn flat label="Cancelar" v-close-popup @click="resetModal"/>
             <q-btn flat label="Salvar" v-show="prompt_add" v-close-popup @click="addAddress(),resetModal()"/>
             <q-btn flat label="Salvar" v-show="prompt_edit" v-close-popup @click="editAddress(),resetModal()"/>
@@ -109,7 +110,6 @@ export default defineComponent({
       if(response.status == 201) {
         triggerPositive("Endereço cadastrado com sucesso.");
       } else {
-        console.log(response)
         triggerNegative('Erro: ' + response.response.data.message);
       }
     }
@@ -125,7 +125,6 @@ export default defineComponent({
       if(response.status == 200) {
         triggerPositive("Endereço alterado com sucesso.");
       } else {
-        console.log(response)
         triggerNegative('Erro: ' + response.response.data.message);
       }
     }
@@ -163,6 +162,7 @@ export default defineComponent({
 
     const prompt_edit = ref(false);
     const prompt_add = ref(false);
+    const prompt = ref(false);
 
     function resetModal() {
       prompt_edit.value = false;
@@ -174,11 +174,24 @@ export default defineComponent({
       uf.value = '';
     }
 
+    function confirm () {
+      $q.dialog({
+        title: 'Confirmar',
+        message: 'Tem certeza que deseja deletar o cep?',
+        cancel: true,
+        persistent: true
+      }).onOk(() => {
+        removeAddress();
+        prompt.value = false;
+      })
+    }
+
     return {
       resetModal,
       addAddress,
       editAddress,
       removeAddress,
+      confirm,
       search,
       data,
       onClickEvent: Event,
@@ -194,7 +207,7 @@ export default defineComponent({
       edit_uf,
       prompt_edit,
       prompt_add,
-      prompt: ref(false),
+      prompt,
       onResetAdd () {
         cep.value = null
         logradouro.value = null
