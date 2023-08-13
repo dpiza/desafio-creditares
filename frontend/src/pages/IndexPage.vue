@@ -46,7 +46,8 @@
           </q-card-section>
           
           <q-card-actions align="right" class="text-primary">
-            <q-btn flat label="Cancelar" v-close-popup type="reset" @click="resetModal"/>
+            <q-btn flat label="Apagar" v-show="prompt_edit" v-close-popup @click="removeAddress(),resetModal()"/>
+            <q-btn flat label="Cancelar" v-close-popup @click="resetModal"/>
             <q-btn flat label="Salvar" v-show="prompt_add" v-close-popup @click="addAddress(),resetModal()"/>
             <q-btn flat label="Salvar" v-show="prompt_edit" v-close-popup @click="editAddress(),resetModal()"/>
           </q-card-actions>
@@ -64,6 +65,7 @@ import { defineComponent, ref } from 'vue';
 import { useCepStore } from 'stores/CepStore';
 import { addCep } from 'src/services/AddCep';
 import { editCep } from 'src/services/EditCep';
+import { removeCep } from 'src/services/RemoveCep';
 
 export default defineComponent({
   name: 'IndexPage',
@@ -128,6 +130,16 @@ export default defineComponent({
       }
     }
 
+    async function removeAddress() {
+      const response = await removeCep(cep.value);
+      if(response.status == 200) {
+        triggerPositive("Endereço removido com sucesso.");
+      } else {
+        console.log(response)
+        triggerNegative('Erro: ' + response.response.data.message);
+      }
+    }
+
     function triggerPositive (message: string) {
       $q.notify({
         type: 'positive',
@@ -166,6 +178,7 @@ export default defineComponent({
       resetModal,
       addAddress,
       editAddress,
+      removeAddress,
       search,
       data,
       onClickEvent: Event,
