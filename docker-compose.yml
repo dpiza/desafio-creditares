@@ -26,6 +26,18 @@ services:
     networks:
       - rede-cep
 
+  frontend:
+    image: cep-app:1.0
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: production-stage
+    container_name: frontend
+    ports:
+      - "80:80"
+    networks:
+      - rede-cep
+
   wait-for-db:
     image: atkrad/wait4x
     depends_on:
