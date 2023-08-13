@@ -55,7 +55,8 @@ class CepService
       }
     }
 
-    return $dbCep;
+    $res[] = $dbCep;
+    return $res;
   }
 
   public function findByStreetName($streetName)
@@ -70,7 +71,8 @@ class CepService
       }
     }
 
-    return $dbCep;
+    $res[] = $dbCep;
+    return $res;
   }
 
   public function addCep($request, $cep)
