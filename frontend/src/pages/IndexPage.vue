@@ -11,12 +11,15 @@
           :cidade="i['cidade']"
           :uf="i['uf']"
           class="cursor-pointer"
-          @click="prompt_edit = true, prompt_modal = true,
-            cep = i['cep'],
-            logradouro = i['logradouro'],
-            bairro = i['bairro'],
-            cidade = i['cidade'],
-            uf = i['uf']"/>
+          @click="
+            prompt_edit = true,
+            prompt_modal = true,
+            address.cep = i['cep'],
+            address.logradouro = i['logradouro'],
+            address.bairro = i['bairro'],
+            address.cidade = i['cidade'],
+            address.uf = i['uf']"
+            />
         </div>
       </div>
     </div> 
@@ -26,25 +29,21 @@
       <q-btn fab icon="add" color="primary" @click="prompt_add = true, prompt_modal = true" />
     </q-page-sticky>
  
-    <!-- Add/Edit Address Modal -->
+    <!-- Address Modal -->
     <q-dialog v-model="prompt_modal" persistent>
       <q-card style="min-width: 350px">
         <q-card-section>
           <div class="text-h6" v-show="prompt_add">Cadastrar Endereço</div>
           <div class="text-h6" v-show="prompt_edit">Editar Endereço</div>
         </q-card-section>
-
-        <q-form
-          @reset="onResetAdd">
+        <q-form>
           <q-card-section class="q-pt-none">
-
-            <q-input dense v-model="cep" autofocus label="CEP" />
-            <q-input dense v-model="logradouro" autofocus label="Logradouro" />
-            <q-input dense v-model="bairro" autofocus label="Bairro" />
-            <q-input dense v-model="cidade" autofocus label="Cidade" />
-            <q-input dense v-model="uf" autofocus label="UF" />
-          </q-card-section>
-          
+            <q-input dense v-model="address.cep" autofocus label="CEP" />
+            <q-input dense v-model="address.logradouro" label="Logradouro" />
+            <q-input dense v-model="address.bairro" label="Bairro" />
+            <q-input dense v-model="address.cidade" label="Cidade" />
+            <q-input dense v-model="address.uf" label="UF" />
+          </q-card-section> 
           <q-card-actions align="right" class="text-primary">
             <q-btn flat label="Apagar" color="red" v-show="prompt_edit" @click="confirmDialog"/>
             <q-space />
@@ -66,20 +65,22 @@ import { defineComponent, ref } from 'vue';
 import { useCepStore } from 'stores/CepStore';
 import { addCep, editCep, removeCep } from 'src/services';
 import { bus } from 'boot/eventbus';
+import { Cep } from 'src/models/Cep';
 
 export default defineComponent({
   name: 'IndexPage',
   components: { AddressCardComponent },
   setup () {
-    const data = ref([]);
-    const search = ref('');
-    const cep = ref('');
-    const logradouro = ref('');
-    const bairro = ref('');
-    const cidade = ref('');
-    const uf = ref('');
-    const refreshKey = ref(0);
     const cepStore = useCepStore();
+    const refreshKey = ref(0);
+    const data = ref([] as Cep[]);
+    const address = ref({
+      cep: '',
+      logradouro: '',
+      bairro: '',
+      cidade: '',
+      uf: ''
+    })
 
     // Event listener to update the cards component
     bus.on('refreshEvent', async () => {
@@ -102,40 +103,58 @@ export default defineComponent({
  
     // Address Actions
     async function addAddress() {
-      const response = await addCep({
-        cep: cep.value,
-        logradouro: logradouro.value,
-        bairro: bairro.value,
-        cidade: cidade.value,
-        uf: uf.value,
-      });
-      if(response.status == 201) {
-        triggerPositive("Endereço cadastrado com sucesso.");
-        bus.emit('refreshEvent');
+      const regexCep = RegExp(/^\d{5}-?\d{3}$/);
+      if(regexCep.test(address.value.cep)) {
+        const response = await addCep({
+          cep: address.value.cep.replace('-', ''),
+          logradouro: address.value.logradouro,
+          bairro: address.value.bairro,
+          cidade: address.value.cidade,
+          uf: address.value.uf,
+        });
+        if(response.status == 201) {
+          triggerPositive("Endereço cadastrado com sucesso.");
+          bus.emit('refreshEvent');
+        } else if(response.response.data.message == "Validation errors") {
+          triggerNegative('Erro: Todos os campos são obrigatórios.');
+        } else {
+          triggerNegative('Erro: ' + response.response.data.message);
+        }
       } else {
-        triggerNegative('Erro: ' + response.response.data.message);
+        triggerNegative('Erro: CEP inválido');
       }
     }
     async function editAddress() {
-      const response = await editCep({
-        cep: cep.value,
-        logradouro: logradouro.value,
-        bairro: bairro.value,
-        cidade: cidade.value,
-        uf: uf.value,
-      });
-      if(response.status == 200) {
-        triggerPositive("Endereço alterado com sucesso.");
-        bus.emit('refreshEvent');
+      const regexCep = RegExp(/^\d{5}-?\d{3}$/);
+      if(regexCep.test(address.value.cep)) {
+        const response = await editCep({
+          cep: address.value.cep,
+          logradouro: address.value.logradouro,
+          bairro: address.value.bairro,
+          cidade: address.value.cidade,
+          uf: address.value.uf,
+        });
+        if(response.status == 200) {
+          triggerPositive("Endereço alterado com sucesso.");
+          bus.emit('refreshEvent');
+        } else if(response.response.data.message == "Validation errors") {
+          triggerNegative('Erro: Todos os campos são obrigatórios.');
+        } else if(response.response.data.message == "Cep unknown in database") {
+          triggerNegative('Erro: O CEP não existe no banco de dados.');
+        } else {
+          triggerNegative('Erro: ' + response.response.data.message);
+        }
       } else {
-        triggerNegative('Erro: ' + response.response.data.message);
+        triggerNegative('Erro: CEP inválido');
       }
     }
     async function removeAddress() {
-      const response = await removeCep(cep.value);
+      const response = await removeCep(address.value.cep);
       if(response.status == 200) {
         triggerPositive("Endereço removido com sucesso.");
         bus.emit('refreshEvent');
+      } else if(response.response.data.message == "Cep unknown in database") {
+        triggerNegative('Erro: O CEP não existe no banco de dados.');
       } else {
         triggerNegative('Erro: ' + response.response.data.message);
       }
@@ -148,11 +167,11 @@ export default defineComponent({
     function resetModal() {
       prompt_edit.value = false;
       prompt_add.value = false;
-      cep.value = '';
-      logradouro.value = '';
-      bairro.value = '';
-      cidade.value = '';
-      uf.value = '';
+      address.value.cep = '';
+      address.value.logradouro = '';
+      address.value.bairro = '';
+      address.value.cidade = '';
+      address.value.uf = '';
     }
 
     // Notify and Dialog
@@ -178,7 +197,7 @@ export default defineComponent({
     function confirmDialog () {
       $q.dialog({
         title: 'Confirmar',
-        message: 'Tem certeza que deseja deletar o cep?',
+        message: 'Tem certeza que deseja apagar o endereço?',
         cancel: true,
         persistent: true
       }).onOk(() => {
@@ -190,34 +209,16 @@ export default defineComponent({
 
     return {
       refreshKey,
-      resetModal,
+      data,
+      address,
+      prompt_edit,
+      prompt_add,
+      prompt_modal,
       addAddress,
       editAddress,
       removeAddress,
       confirmDialog,
-      search,
-      data,
-      onClickEvent: Event,
-      cep,
-      logradouro,
-      bairro,
-      cidade,
-      uf,
-      prompt_edit,
-      prompt_add,
-      prompt_modal,
-      onResetAdd () {
-        cep.value = null
-        logradouro.value = null
-        bairro.value = null
-        cidade.value = null
-        uf.value = null
-      },
-      async submitSearch(){
-        if (search.value) {
-          await cepStore.getByCep(search.value)
-        }
-      }
+      resetModal,
     }
   }
 });
