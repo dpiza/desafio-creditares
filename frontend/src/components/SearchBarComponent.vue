@@ -37,9 +37,14 @@ import { useCepStore } from 'stores/CepStore';
 const search = ref('');
 const cepStore = useCepStore(); 
 
+const regexCep = RegExp(/^\d{5}-?\d{3}$/);
+
 async function submitSearch(){
-  if (search.value) {
-    await cepStore.getByCep(search.value)
+  if (search.value && regexCep.test(search.value)) {
+    await cepStore.getByCep(search.value.replace('-', ''))
+    console.log(cepStore.getResults);
+  }else {
+    await cepStore.getByAddress(search.value)
     console.log(cepStore.getResults);
   }
 };

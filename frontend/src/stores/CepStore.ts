@@ -36,6 +36,18 @@ export const useCepStore = defineStore('cep', {
           // this.$router.push('search');
         });
     },
+    async getByAddress(address: string) {
+      this.isLoading = true;
+      await api
+        .get('/cep/search/' + address)
+        .then((response) => {
+          this.results.push(response.data.data);
+        })
+        .finally(() => {
+          this.isLoading = false;
+          // this.$router.push('search');
+        });
+    },
     clearBuffer() {
       this.results = [];
       console.log(this.results);
