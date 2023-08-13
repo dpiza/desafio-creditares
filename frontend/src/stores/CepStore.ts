@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { Cep } from 'src/models/Cep';
 import { api } from 'boot/axios';
+import { bus } from 'boot/eventbus';
 
 export const useCepStore = defineStore('cep', {
   state: () => ({
@@ -29,11 +30,11 @@ export const useCepStore = defineStore('cep', {
       await api
         .get('/cep/' + cep)
         .then((response) => {
-          this.results.push(response.data.data);
+          this.results = response.data.data;
         })
         .finally(() => {
           this.isLoading = false;
-          // this.$router.push('search');
+          bus.emit('refreshEvent');
         });
     },
     async getByAddress(address: string) {
@@ -41,16 +42,15 @@ export const useCepStore = defineStore('cep', {
       await api
         .get('/cep/search/' + address)
         .then((response) => {
-          this.results.push(response.data.data);
+          this.results = response.data.data;
         })
         .finally(() => {
           this.isLoading = false;
-          // this.$router.push('search');
+          bus.emit('refreshEvent');
         });
     },
     clearBuffer() {
       this.results = [];
-      console.log(this.results);
     },
   },
 });
