@@ -64,9 +64,7 @@ import AddressCardComponent from 'components/AddressCardComponent.vue';
 import { useQuasar } from 'quasar';
 import { defineComponent, ref } from 'vue';
 import { useCepStore } from 'stores/CepStore';
-import { addCep } from 'src/services/AddCep';
-import { editCep } from 'src/services/EditCep';
-import { removeCep } from 'src/services/RemoveCep';
+import { addCep, editCep, removeCep } from 'src/services';
 import { bus } from 'boot/eventbus';
 
 export default defineComponent({
