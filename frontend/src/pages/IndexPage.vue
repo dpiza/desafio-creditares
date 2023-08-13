@@ -11,67 +11,44 @@
           :cidade="i['cidade']"
           :uf="i['uf']"
           class="cursor-pointer"
-          @click="prompt_edit = true,
-            edit_cep = i['cep'],
-            edit_logradouro = i['logradouro'],
-            edit_bairro = i['bairro'],
-            edit_cidade = i['cidade'],
-            edit_uf = i['uf']"/>
+          @click="prompt_edit = true, prompt = true,
+            cep = i['cep'],
+            logradouro = i['logradouro'],
+            bairro = i['bairro'],
+            cidade = i['cidade'],
+            uf = i['uf']"/>
         </div>
       </div>
-    </div>
+    </div> 
 
     <!-- Add Address Sticky Button -->
     <q-page-sticky position="bottom-right" :offset="[20, 20]">
-      <q-btn fab icon="add" color="primary" @click="prompt_add = true" />
+      <q-btn fab icon="add" color="primary" @click="prompt_add = true, prompt = true" />
     </q-page-sticky>
 
-    <!-- Add Address Modal -->
-    <q-dialog v-model="prompt_add" persistent>
+    <!-- Add/Edit Address Modal -->
+    <q-dialog v-model="prompt" persistent>
       <q-card style="min-width: 350px">
         <q-card-section>
-          <div class="text-h6">Cadastrar Endereço</div>
+          <div class="text-h6" v-show="prompt_add">Cadastrar Endereço</div>
+          <div class="text-h6" v-show="prompt_edit">Editar Endereço</div>
         </q-card-section>
 
         <q-form
           @reset="onResetAdd">
           <q-card-section class="q-pt-none">
 
-            <q-input dense v-model="add_cep" autofocus label="CEP" />
-            <q-input dense v-model="add_logradouro" autofocus label="Logradouro" />
-            <q-input dense v-model="add_bairro" autofocus label="Bairro" />
-            <q-input dense v-model="add_cidade" autofocus label="Cidade" />
-            <q-input dense v-model="add_uf" autofocus label="UF" />
+            <q-input dense v-model="cep" autofocus label="CEP" />
+            <q-input dense v-model="logradouro" autofocus label="Logradouro" />
+            <q-input dense v-model="bairro" autofocus label="Bairro" />
+            <q-input dense v-model="cidade" autofocus label="Cidade" />
+            <q-input dense v-model="uf" autofocus label="UF" />
           </q-card-section>
           
           <q-card-actions align="right" class="text-primary">
-            <q-btn flat label="Cancelar" v-close-popup type="reset"/>
-            <q-btn flat label="Salvar" v-close-popup />
-          </q-card-actions>
-        </q-form>
-      </q-card>
-    </q-dialog>
-
-    <!-- Modify Address Modal -->
-    <q-dialog v-model="prompt_edit" persistent>
-      <q-card style="min-width: 350px">
-        <q-card-section>
-          <div class="text-h6">Editar Endereço</div>
-        </q-card-section>
-
-        <q-form>
-          <q-card-section class="q-pt-none">
-
-            <q-input dense v-model="edit_cep" autofocus label="CEP" />
-            <q-input dense v-model="edit_logradouro" autofocus label="Logradouro" />
-            <q-input dense v-model="edit_bairro" autofocus label="Bairro" />
-            <q-input dense v-model="edit_cidade" autofocus label="Cidade" />
-            <q-input dense v-model="edit_uf" autofocus label="UF" />
-          </q-card-section>
-          
-          <q-card-actions align="right" class="text-primary">
-            <q-btn flat label="Cancelar" v-close-popup/>
-            <q-btn flat label="Salvar" v-close-popup @click="triggerPositive"/>
+            <q-btn flat label="Cancelar" v-close-popup type="reset" @click="resetModal"/>
+            <q-btn flat label="Salvar" v-show="prompt_add" v-close-popup @click="addAddress(),resetModal()"/>
+            <q-btn flat label="Salvar" v-show="prompt_edit" v-close-popup @click="editAddress(),resetModal()"/>
           </q-card-actions>
         </q-form>
       </q-card>
@@ -85,6 +62,8 @@ import AddressCardComponent from 'components/AddressCardComponent.vue';
 import { useQuasar } from 'quasar';
 import { defineComponent, ref } from 'vue';
 import { useCepStore } from 'stores/CepStore';
+import { addCep } from 'src/services/AddCep';
+import { editCep } from 'src/services/EditCep';
 
 export default defineComponent({
   name: 'IndexPage',
@@ -94,11 +73,12 @@ export default defineComponent({
 
     const data = ref([]);
 
-    const add_cep = ref('');
-    const add_logradouro = ref('');
-    const add_bairro = ref('');
-    const add_cidade = ref('');
-    const add_uf = ref('');
+    const search = ref('');
+    const cep = ref('');
+    const logradouro = ref('');
+    const bairro = ref('');
+    const cidade = ref('');
+    const uf = ref('');
 
     const edit_cep = ref('');
     const edit_logradouro = ref('');
@@ -109,52 +89,111 @@ export default defineComponent({
     const cepStore = useCepStore(); 
 
     (async () => {
-      await cepStore.getAll();
+      if (cepStore.getResults.length == 0) {
+        await cepStore.getAll();
+      }
       data.value = cepStore.getResults;
+      cepStore.clearBuffer();
     })()
 
+    async function addAddress() {
+      const response = await addCep({
+        cep: cep.value,
+        logradouro: logradouro.value,
+        bairro: bairro.value,
+        cidade: cidade.value,
+        uf: uf.value,
+      });
+      if(response.status == 201) {
+        triggerPositive("Endereço cadastrado com sucesso.");
+      } else {
+        console.log(response)
+        triggerNegative('Erro: ' + response.response.data.message);
+      }
+    }
+
+    async function editAddress() {
+      const response = await editCep({
+        cep: cep.value,
+        logradouro: logradouro.value,
+        bairro: bairro.value,
+        cidade: cidade.value,
+        uf: uf.value,
+      });
+      if(response.status == 200) {
+        triggerPositive("Endereço alterado com sucesso.");
+      } else {
+        console.log(response)
+        triggerNegative('Erro: ' + response.response.data.message);
+      }
+    }
+
+    function triggerPositive (message: string) {
+      $q.notify({
+        type: 'positive',
+        message: message
+      })
+    }
+
+    function triggerNegative (message: string) {
+      $q.notify({
+        type: 'negative',
+        message: message
+      })
+    }
+
+    function triggerWarning (message: string) {
+      $q.notify({
+        type: 'warning',
+        message: message
+      })
+    }
+
+    const prompt_edit = ref(false);
+    const prompt_add = ref(false);
+
+    function resetModal() {
+      prompt_edit.value = false;
+      prompt_add.value = false;
+      cep.value = '';
+      logradouro.value = '';
+      bairro.value = '';
+      cidade.value = '';
+      uf.value = '';
+    }
 
     return {
+      resetModal,
+      addAddress,
+      editAddress,
+      search,
       data,
       onClickEvent: Event,
-      add_cep,
-      add_logradouro,
-      add_bairro,
-      add_cidade,
-      add_uf,
+      cep,
+      logradouro,
+      bairro,
+      cidade,
+      uf,
       edit_cep,
       edit_logradouro,
       edit_bairro,
       edit_cidade,
       edit_uf,
-      prompt_edit: ref(false),
-      prompt_add: ref(false),
+      prompt_edit,
+      prompt_add,
+      prompt: ref(false),
       onResetAdd () {
-        add_cep.value = null
-        add_logradouro.value = null
-        add_bairro.value = null
-        add_cidade.value = null
-        add_uf.value = null
+        cep.value = null
+        logradouro.value = null
+        bairro.value = null
+        cidade.value = null
+        uf.value = null
       },
-      triggerPositive () {
-        $q.notify({
-          type: 'positive',
-          message: 'This is a "positive" type notification.'
-        })
-      },
-
-      triggerNegative () {
-        $q.notify({
-          type: 'negative',
-          message: 'This is a "negative" type notification.'
-        })
-      },
-
-      triggerWarning () {
-        $q.notify({
-          type: 'warning',
-          message: 'This is a "warning" type notification.'
-        })
+      async submitSearch(){
+        if (search.value) {
+          await cepStore.getByCep(search.value)
+          console.log(cepStore.getResults);
+        }
       }
     }
   }
