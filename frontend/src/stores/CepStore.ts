@@ -6,7 +6,6 @@ export const useCepStore = defineStore('cep', {
   state: () => ({
     isLoading: false,
     results: [] as Cep[],
-    counter: 0,
   }),
 
   getters: {
@@ -24,6 +23,22 @@ export const useCepStore = defineStore('cep', {
           this.results = response.data.data;
         })
         .finally(() => (this.isLoading = false));
+    },
+    async getByCep(cep: string) {
+      this.isLoading = true;
+      await api
+        .get('/cep/' + cep)
+        .then((response) => {
+          this.results.push(response.data.data);
+        })
+        .finally(() => {
+          this.isLoading = false;
+          // this.$router.push('search');
+        });
+    },
+    clearBuffer() {
+      this.results = [];
+      console.log(this.results);
     },
   },
 });
