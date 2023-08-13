@@ -1,4 +1,4 @@
-version: "3.0"
+version: "3.9"
 
 services:
   database:
@@ -13,13 +13,24 @@ services:
       - rede-cep
 
   backend:
-    image: cep-app:1.0
+    image: cep-backend:1.0
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: backend
+    depends_on:
+      wait-for-db:
+        condition: service_completed_successfully
     ports:
       - "8000:8000"
+    networks:
+      - rede-cep
+
+  wait-for-db:
+    image: atkrad/wait4x
+    depends_on:
+      - database
+    command: tcp database:3306 -t 600s -i 30s
     networks:
       - rede-cep
 

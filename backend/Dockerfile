@@ -1,29 +1,42 @@
-FROM composer:2.5.8
+# Dockerfile
+FROM php:8.1-fpm
 
-# Install dependencies
+ENV USER=www
+ENV GROUP=www
+
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
-  build-essential \
+  git \
+  curl \
   libpng-dev \
-  libjpeg-dev \
-  libfreetype6-dev \
-  libzip-dev \
+  libonig-dev \
+  libxml2-dev \
   zip \
   unzip
 
 # Install PHP extensions
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg
-RUN docker-php-ext-install gd
+RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 
-# Set up the application directory
-RUN mkdir -p /var/www/app
-WORKDIR /var/www/app
+WORKDIR /app
+# COPY . /app
 
-# Copy the application code
-COPY . /var/www/app
+# Get latest Composer
+COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
 
-# Install the application dependencies
-RUN composer install --no-dev --optimize-autoloader
+# Create User and Group
+RUN groupadd -g 1000 ${GROUP} && useradd -u 1000 -ms /bin/bash -g ${GROUP} ${USER}
 
-# Set the file permissions
-RUN chmod -R 755 /var/www/app
+# Grant Permissions
+RUN chown -R ${USER} /app
+
+# Select User
+USER ${USER}
+
+# Copy permission to selected user
+COPY --chown=${USER}:${GROUP} . .
+
+RUN composer install
+
+EXPOSE 8000
+
+ENTRYPOINT ["/bin/sh", "startup.sh"]
