@@ -1,7 +1,7 @@
 <template>
   <q-page>
     <div class="main-page">
-      <div class="container row">
+      <div class="container row" :key="refreshKey">
         <div v-for="i in data"
         class="q-pa-sm col-xs-12 col-sm-12 col-md-3 col-lg-3 q-col-gutter-sm" :key="i">
           <address-card-component
@@ -11,7 +11,7 @@
           :cidade="i['cidade']"
           :uf="i['uf']"
           class="cursor-pointer"
-          @click="prompt_edit = true, prompt = true,
+          @click="prompt_edit = true, prompt_modal = true,
             cep = i['cep'],
             logradouro = i['logradouro'],
             bairro = i['bairro'],
@@ -23,11 +23,11 @@
 
     <!-- Add Address Sticky Button -->
     <q-page-sticky position="bottom-right" :offset="[20, 20]">
-      <q-btn fab icon="add" color="primary" @click="prompt_add = true, prompt = true" />
+      <q-btn fab icon="add" color="primary" @click="prompt_add = true, prompt_modal = true" />
     </q-page-sticky>
-
+ 
     <!-- Add/Edit Address Modal -->
-    <q-dialog v-model="prompt" persistent>
+    <q-dialog v-model="prompt_modal" persistent>
       <q-card style="min-width: 350px">
         <q-card-section>
           <div class="text-h6" v-show="prompt_add">Cadastrar Endereço</div>
@@ -46,7 +46,7 @@
           </q-card-section>
           
           <q-card-actions align="right" class="text-primary">
-            <q-btn flat label="Apagar" color="red" v-show="prompt_edit" @click="confirm"/>
+            <q-btn flat label="Apagar" color="red" v-show="prompt_edit" @click="confirmDialog"/>
             <q-space />
             <q-btn flat label="Cancelar" v-close-popup @click="resetModal"/>
             <q-btn flat label="Salvar" v-show="prompt_add" v-close-popup @click="addAddress(),resetModal()"/>
@@ -67,38 +67,42 @@ import { useCepStore } from 'stores/CepStore';
 import { addCep } from 'src/services/AddCep';
 import { editCep } from 'src/services/EditCep';
 import { removeCep } from 'src/services/RemoveCep';
+import { bus } from 'boot/eventbus';
 
 export default defineComponent({
   name: 'IndexPage',
   components: { AddressCardComponent },
   setup () {
-    const $q = useQuasar();
-
     const data = ref([]);
-
     const search = ref('');
     const cep = ref('');
     const logradouro = ref('');
     const bairro = ref('');
     const cidade = ref('');
     const uf = ref('');
+    const refreshKey = ref(0);
+    const cepStore = useCepStore();
 
-    const edit_cep = ref('');
-    const edit_logradouro = ref('');
-    const edit_bairro = ref('');
-    const edit_cidade = ref('');
-    const edit_uf = ref('');
+    // Event listener to update the cards component
+    bus.on('refreshEvent', async () => {
+      if(cepStore.getResults.length == 0) {
+        await cepStore.getAll();
+      }
+      data.value = cepStore.getResults;
+      refreshKey.value += 1;
+      cepStore.clearBuffer();
+    });
 
-    const cepStore = useCepStore(); 
-
+    // Performs getAll when the page is refreshed
     (async () => {
       if (cepStore.getResults.length == 0) {
         await cepStore.getAll();
       }
       data.value = cepStore.getResults;
       cepStore.clearBuffer();
-    })()
-
+    })();
+ 
+    // Address Actions
     async function addAddress() {
       const response = await addCep({
         cep: cep.value,
@@ -109,11 +113,11 @@ export default defineComponent({
       });
       if(response.status == 201) {
         triggerPositive("Endereço cadastrado com sucesso.");
+        bus.emit('refreshEvent');
       } else {
         triggerNegative('Erro: ' + response.response.data.message);
       }
     }
-
     async function editAddress() {
       const response = await editCep({
         cep: cep.value,
@@ -124,46 +128,25 @@ export default defineComponent({
       });
       if(response.status == 200) {
         triggerPositive("Endereço alterado com sucesso.");
+        bus.emit('refreshEvent');
       } else {
         triggerNegative('Erro: ' + response.response.data.message);
       }
     }
-
     async function removeAddress() {
       const response = await removeCep(cep.value);
       if(response.status == 200) {
         triggerPositive("Endereço removido com sucesso.");
+        bus.emit('refreshEvent');
       } else {
-        console.log(response)
         triggerNegative('Erro: ' + response.response.data.message);
       }
     }
 
-    function triggerPositive (message: string) {
-      $q.notify({
-        type: 'positive',
-        message: message
-      })
-    }
-
-    function triggerNegative (message: string) {
-      $q.notify({
-        type: 'negative',
-        message: message
-      })
-    }
-
-    function triggerWarning (message: string) {
-      $q.notify({
-        type: 'warning',
-        message: message
-      })
-    }
-
+    // Address Modal
+    const prompt_modal = ref(false);
     const prompt_edit = ref(false);
     const prompt_add = ref(false);
-    const prompt = ref(false);
-
     function resetModal() {
       prompt_edit.value = false;
       prompt_add.value = false;
@@ -174,7 +157,27 @@ export default defineComponent({
       uf.value = '';
     }
 
-    function confirm () {
+    // Notify and Dialog
+    const $q = useQuasar();
+    function triggerPositive (message: string) {
+      $q.notify({
+        type: 'positive',
+        message: message
+      })
+    }
+    function triggerNegative (message: string) {
+      $q.notify({
+        type: 'negative',
+        message: message
+      })
+    }
+    function triggerWarning (message: string) {
+      $q.notify({
+        type: 'warning',
+        message: message
+      })
+    }
+    function confirmDialog () {
       $q.dialog({
         title: 'Confirmar',
         message: 'Tem certeza que deseja deletar o cep?',
@@ -182,16 +185,18 @@ export default defineComponent({
         persistent: true
       }).onOk(() => {
         removeAddress();
-        prompt.value = false;
+        prompt_modal.value = false;
+        resetModal();
       })
     }
 
     return {
+      refreshKey,
       resetModal,
       addAddress,
       editAddress,
       removeAddress,
-      confirm,
+      confirmDialog,
       search,
       data,
       onClickEvent: Event,
@@ -200,14 +205,9 @@ export default defineComponent({
       bairro,
       cidade,
       uf,
-      edit_cep,
-      edit_logradouro,
-      edit_bairro,
-      edit_cidade,
-      edit_uf,
       prompt_edit,
       prompt_add,
-      prompt,
+      prompt_modal,
       onResetAdd () {
         cep.value = null
         logradouro.value = null
@@ -218,7 +218,6 @@ export default defineComponent({
       async submitSearch(){
         if (search.value) {
           await cepStore.getByCep(search.value)
-          console.log(cepStore.getResults);
         }
       }
     }
