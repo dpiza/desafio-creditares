@@ -33,6 +33,7 @@
 <script setup lang="ts">
 import { ref} from 'vue';
 import { useCepStore } from 'stores/CepStore';
+import { bus } from 'boot/eventbus';
 
 const search = ref('');
 const cepStore = useCepStore(); 
@@ -40,12 +41,14 @@ const cepStore = useCepStore();
 const regexCep = RegExp(/^\d{5}-?\d{3}$/);
 
 async function submitSearch(){
-  if (search.value != '') {
+  if (search.value != '' && search.value != null) {
     if (regexCep.test(search.value)) {
       await cepStore.getByCep(search.value.replace('-', ''))
     } else {
       await cepStore.getByAddress(search.value)
     }
+  } else {
+    bus.emit('refreshEvent');
   }
 };
 </script>

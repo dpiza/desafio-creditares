@@ -2,8 +2,8 @@
   <q-layout view="hHh Lpr fFf">
     <q-header>
       <q-toolbar class="bg-white">
-        <q-item clickable tag="home" href="#">
-          <q-img width="110px" src="/icons/icon_cepdb.png" href="#"/>
+        <q-item clickable tag="home" href="#" @click="sendRefresh">
+          <q-img width="110px" src="/icons/icon_cepdb.png"/>
         </q-item>
       </q-toolbar>
       <img
@@ -22,10 +22,20 @@
 <script lang="ts">
 import SearchBarComponent from 'components/SearchBarComponent.vue';
 import { defineComponent } from 'vue';
+import { bus } from 'boot/eventbus';
+
+function sendRefresh(){
+  bus.emit('refreshEvent');
+}
 
 export default defineComponent({
   name: 'MainLayout',
   components: {SearchBarComponent},
+  setup () {
+    return {
+      sendRefresh
+    }
+  }
 });
 </script>
 
