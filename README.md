@@ -1,6 +1,6 @@
 # desafio-creditares
 
-O desafio é desenvolver uma API e um sistema FrontEnd para busca e armazenamento de CEPs. Quando o CEP buscado não é encontrado no banco de dados local, o sistema deve consumir uma API externa e armazenar o resultado encontrado.
+O desafio consiste em desenvolver uma API e um sistema FrontEnd para busca e armazenamento de CEPs. Quando o CEP buscado não é encontrado no banco de dados local, o sistema deve consumir uma API externa e armazenar o resultado encontrado.
 
 #### Stack
 
