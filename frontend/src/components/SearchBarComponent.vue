@@ -12,6 +12,7 @@
               label="Buscar endereço"
               v-model="search"
               @keydown.enter="submitSearch"
+              @clear="submitSearch"
             />
           </div>
           <div>
