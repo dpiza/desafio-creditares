@@ -34,7 +34,11 @@ export const useCepStore = defineStore('cep', {
       await api
         .get('/cep/' + cep)
         .then((response) => {
-          this.results = response.data.data;
+          if (response.data.data[0]) {
+            this.results = response.data.data;
+          } else {
+            this.emptyResult = true;
+          }
         })
         .finally(() => {
           this.isLoading = false;
