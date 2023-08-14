@@ -52,6 +52,7 @@ class CepService
 
       if (!empty($fetchCep)) {
         $dbCep = $this->addNewCep($fetchCep);
+        $dbCep['db'] = 1;
       }
     }
 
@@ -67,6 +68,10 @@ class CepService
       $fetchCep =  $this->fetchCep($streetName);
 
       if (!empty($fetchCep)) {
+        foreach ($fetchCep as &$cep) {
+          $cep['db'] = 0;
+        }
+        unset($cep);
         return $fetchCep;
       }
     }

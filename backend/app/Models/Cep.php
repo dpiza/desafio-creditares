@@ -20,5 +20,6 @@ class Cep extends Model
     'bairro',
     'cidade',
     'uf',
+    'db',
   ];
 }
