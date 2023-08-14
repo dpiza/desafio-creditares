@@ -4,4 +4,5 @@ export interface Cep {
   bairro: string;
   cidade: string;
   uf: string;
+  db: boolean;
 }

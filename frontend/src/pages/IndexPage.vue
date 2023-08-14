@@ -12,6 +12,7 @@
           :bairro="i['bairro']"
           :cidade="i['cidade']"
           :uf="i['uf']"
+          :db="i['db']"
           class="cursor-pointer"
           @click="
             prompt_edit = true,
@@ -20,11 +21,12 @@
             address.logradouro = i['logradouro'],
             address.bairro = i['bairro'],
             address.cidade = i['cidade'],
-            address.uf = i['uf']"
+            address.uf = i['uf'],
+            address.db = i['db']"
             />
         </div>
       </div>
-    </div> 
+    </div>
 
     <!-- Add Address Sticky Button -->
     <q-page-sticky position="bottom-right" :offset="[20, 20]">
@@ -35,8 +37,8 @@
     <q-dialog v-model="prompt_modal" persistent>
       <q-card style="min-width: 350px">
         <q-card-section>
-          <div class="text-h6" v-show="prompt_add">Cadastrar Endereço</div>
-          <div class="text-h6" v-show="prompt_edit">Editar Endereço</div>
+          <div class="text-h6" v-show="prompt_add||address.db == false">Cadastrar Endereço</div>
+          <div class="text-h6" v-show="prompt_edit&&address.db == true">Editar Endereço</div>
         </q-card-section>
         <q-form>
           <q-card-section class="q-pt-none">
@@ -47,11 +49,11 @@
             <q-input dense v-model="address.uf" label="UF" />
           </q-card-section> 
           <q-card-actions align="right" class="text-primary">
-            <q-btn flat label="Apagar" color="red" v-show="prompt_edit" @click="confirmDialog"/>
+            <q-btn flat label="Apagar" color="red" v-show="prompt_edit&&address.db == true" @click="confirmDialog"/>
             <q-space />
             <q-btn flat label="Cancelar" v-close-popup @click="resetModal"/>
-            <q-btn flat label="Salvar" v-show="prompt_add" v-close-popup @click="addAddress(),resetModal()"/>
-            <q-btn flat label="Salvar" v-show="prompt_edit" v-close-popup @click="editAddress(),resetModal()"/>
+            <q-btn flat label="Salvar" v-show="prompt_add||address.db == false" v-close-popup @click="addAddress()"/>
+            <q-btn flat label="Salvar" v-show="prompt_edit&&address.db == true" v-close-popup @click="editAddress()"/>
           </q-card-actions>
         </q-form>
       </q-card>
@@ -82,7 +84,8 @@ export default defineComponent({
       logradouro: '',
       bairro: '',
       cidade: '',
-      uf: ''
+      uf: '',
+      db: false,
     })
 
     // Event listener to update the cards component
@@ -115,6 +118,7 @@ export default defineComponent({
           bairro: address.value.bairro,
           cidade: address.value.cidade,
           uf: address.value.uf,
+          db: address.value.db
         });
         if(response.status == 201) {
           triggerPositive("Endereço cadastrado com sucesso.");
@@ -127,6 +131,7 @@ export default defineComponent({
       } else {
         triggerNegative('Erro: CEP inválido');
       }
+      resetModal();
     }
     async function editAddress() {
       const regexCep = RegExp(/^\d{5}-?\d{3}$/);
@@ -137,6 +142,7 @@ export default defineComponent({
           bairro: address.value.bairro,
           cidade: address.value.cidade,
           uf: address.value.uf,
+          db: address.value.db
         });
         if(response.status == 200) {
           triggerPositive("Endereço alterado com sucesso.");
@@ -151,6 +157,7 @@ export default defineComponent({
       } else {
         triggerNegative('Erro: CEP inválido');
       }
+      resetModal();
     }
     async function removeAddress() {
       const response = await removeCep(address.value.cep);

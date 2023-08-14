@@ -1,6 +1,12 @@
 <template>
   <div>
-    <q-card class="address-card">
+    <q-card v-show="db==true" class="address-card saved">
+        {{ logradouro }}<br>
+        {{ bairro }}<br>
+        {{ cidade }} - {{ uf }}<br>
+        {{ cep }}<br>
+    </q-card>
+    <q-card v-show="db==false" class="address-card not-saved">
         {{ logradouro }}<br>
         {{ bairro }}<br>
         {{ cidade }} - {{ uf }}<br>
@@ -34,6 +40,10 @@ export default defineComponent({
     uf: {
       type: String,
       required: true
+    },
+    db: {
+      type: Boolean,
+      required: true
     }
   }
 })
@@ -44,6 +54,14 @@ export default defineComponent({
   width: 250px;
   height: 118px;
   padding: 8px;
+}
+
+.saved {
+  background: $saved;
+}
+
+.not-saved {
+  background: $not-saved;
 }
 
 body {
