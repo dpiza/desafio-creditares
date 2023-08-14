@@ -42,8 +42,12 @@ Acesse o app através da URL http://localhost/ .
 
 Assim como a agenda de qualquer celular moderno, os contatos são os menus e o feedback visual é toda informação necessária para uma navegação intuitiva.
 
-####Responsividade
+#### Responsividade
+
 HD (1366x768)
-<img width="75%" src="https://github.com/dpiza/resources/blob/master/imgs/hd.png?raw=true"/>
+
+<p><img width="75%" src="https://github.com/dpiza/resources/blob/master/imgs/hd.png?raw=true"/>
+
 iPhone 12 (390x844)
-<img width="25%" src="https://github.com/dpiza/resources/blob/master/imgs/iphone.png?raw=true"/>
+
+<p><img width="25%" src="https://github.com/dpiza/resources/blob/master/imgs/iphone.png?raw=true"/>
