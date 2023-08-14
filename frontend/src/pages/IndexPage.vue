@@ -1,7 +1,9 @@
 <template>
   <q-page>
     <div class="main-page">
-      <div class="container row" :key="refreshKey">
+      <img src="/busca.png" v-show="emptyData"/>
+      <img src="/vazio.png" v-show="data.length == 0 && emptyData == false"/>
+      <div class="container row" v-show="data.length > 0 && emptyData == false" :key="refreshKey">
         <div v-for="i in data"
         class="q-pa-sm col-xs-12 col-sm-12 col-md-3 col-lg-3 q-col-gutter-sm" :key="i">
           <address-card-component
@@ -74,6 +76,7 @@ export default defineComponent({
     const cepStore = useCepStore();
     const refreshKey = ref(0);
     const data = ref([] as Cep[]);
+    const emptyData = ref(false);
     const address = ref({
       cep: '',
       logradouro: '',
@@ -88,6 +91,7 @@ export default defineComponent({
         await cepStore.getAll();
       }
       data.value = cepStore.getResults;
+      emptyData.value = cepStore.getEmptyResult;
       refreshKey.value += 1;
       cepStore.clearBuffer();
     });
@@ -210,6 +214,7 @@ export default defineComponent({
     return {
       refreshKey,
       data,
+      emptyData,
       address,
       prompt_edit,
       prompt_add,

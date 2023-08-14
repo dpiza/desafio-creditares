@@ -5,6 +5,7 @@ import { bus } from 'boot/eventbus';
 
 export const useCepStore = defineStore('cep', {
   state: () => ({
+    emptyResult: false,
     isLoading: false,
     results: [] as Cep[],
   }),
@@ -12,6 +13,9 @@ export const useCepStore = defineStore('cep', {
   getters: {
     getResults(state) {
       return state.results;
+    },
+    getEmptyResult(state) {
+      return state.emptyResult;
     },
   },
 
@@ -42,7 +46,11 @@ export const useCepStore = defineStore('cep', {
       await api
         .get('/cep/search/' + address)
         .then((response) => {
-          this.results = response.data.data;
+          if (response.data.data[0]) {
+            this.results = response.data.data;
+          } else {
+            this.emptyResult = true;
+          }
         })
         .finally(() => {
           this.isLoading = false;
@@ -51,6 +59,7 @@ export const useCepStore = defineStore('cep', {
     },
     clearBuffer() {
       this.results = [];
+      this.emptyResult = false;
     },
   },
 });
